@@ -6,29 +6,36 @@ import ra.edu.api.model.Instructor;
 import ra.edu.api.repository.InstructorDAO;
 
 import java.util.List;
+import java.util.NoSuchElementException;
 
 @Service
 @RequiredArgsConstructor
 public class InstructorService {
+
     private final InstructorDAO instructorDAO;
 
-    public List<Instructor> getAll(){
-         return instructorDAO.findAll();
+    public List<Instructor> getAll() {
+        return instructorDAO.findAll();
     }
 
-    public Instructor getInstructorById(Integer id){
-        return instructorDAO.findById(id);
+    public Instructor getInstructorById(Integer id) {
+        return instructorDAO.findById(id)
+                .orElseThrow(() ->
+                        new NoSuchElementException(
+                                "Không tìm thấy giảng viên có id = " + id
+                        )
+                );
     }
 
-    public void createInstructor(Instructor instructor){
+    public void createInstructor(Instructor instructor) {
         instructorDAO.create(instructor);
     }
 
-    public void updateInstructor(Integer id, Instructor instructor){
+    public void updateInstructor(Integer id, Instructor instructor) {
         instructorDAO.update(id, instructor);
     }
 
-    public void deleteInstructorById(Integer id){
-        instructorDAO.delete(id);
+    public void deleteInstructorById(Integer id) {
+        instructorDAO.deleteById(id);
     }
 }

@@ -2,13 +2,15 @@ package ra.edu.api.repository;
 
 import org.springframework.stereotype.Repository;
 import ra.edu.api.model.Course;
-import ra.edu.api.model.Instructor;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.NoSuchElementException;
+import java.util.Optional;
 
 @Repository
 public class CourseDAO {
+
     private final List<Course> courses = new ArrayList<>(
             List.of(
                     new Course(1, "Java Spring Boot", "ACTIVE", 1),
@@ -21,11 +23,11 @@ public class CourseDAO {
         return courses;
     }
 
-    public Course findById(int id) {
+    // Optional thay cho null
+    public Optional<Course> findById(int id) {
         return courses.stream()
                 .filter(course -> course.getId() == id)
-                .findFirst()
-                .orElse(null);
+                .findFirst();
     }
 
     public void create(Course course) {
@@ -33,20 +35,28 @@ public class CourseDAO {
     }
 
     public void update(Integer id, Course course) {
-        Course updatedCourse = findById(id);
-        int index = courses.indexOf(updatedCourse);
-        if (index == -1) {
-            return;
-        }
+
+        Course oldCourse = findById(id)
+                .orElseThrow(() ->
+                        new NoSuchElementException(
+                                "Không tìm thấy khóa học có id = " + id
+                        )
+                );
+
+        int index = courses.indexOf(oldCourse);
+
         courses.set(index, course);
     }
 
-    public void delete(Integer id) {
-        Course deleteCourse = findById(id);
-        if (deleteCourse == null) {
-            return;
-        }
-        courses.remove(deleteCourse);
-    }
+    public void deleteById(Integer id) {
 
+        Course course = findById(id)
+                .orElseThrow(() ->
+                        new NoSuchElementException(
+                                "Không tìm thấy khóa học có id = " + id
+                        )
+                );
+
+        courses.remove(course);
+    }
 }

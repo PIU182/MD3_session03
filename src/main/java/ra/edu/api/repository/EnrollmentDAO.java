@@ -5,9 +5,12 @@ import ra.edu.api.model.Enrollment;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.NoSuchElementException;
+import java.util.Optional;
 
 @Repository
 public class EnrollmentDAO {
+
     private final List<Enrollment> enrollments = new ArrayList<>(
             List.of(
                     new Enrollment(1, "Nguyen Van C", 1),
@@ -20,8 +23,11 @@ public class EnrollmentDAO {
         return enrollments;
     }
 
-    public Enrollment findById(Integer id) {
-        return enrollments.stream().filter(e -> e.getId().equals(id)).findFirst().orElse(null);
+    // Optional thay cho null
+    public Optional<Enrollment> findById(Integer id) {
+        return enrollments.stream()
+                .filter(enrollment -> enrollment.getId().equals(id))
+                .findFirst();
     }
 
     public void create(Enrollment enrollment) {
@@ -29,18 +35,31 @@ public class EnrollmentDAO {
     }
 
     public void update(Integer id, Enrollment enrollment) {
-        Enrollment oldEnrollment = findById(id);
+
+        Enrollment oldEnrollment = findById(id)
+                .orElseThrow(() ->
+                        new NoSuchElementException(
+                                "Không tìm thấy đăng ký có id = " + id
+                        )
+                );
+
         int index = enrollments.indexOf(oldEnrollment);
-        if (index == -1) {
-            return;
-        }
+
+        // Giữ id theo URL
+        enrollment.setId(id);
+
         enrollments.set(index, enrollment);
     }
 
-    public void delete(Integer id) {
-        Enrollment oldEnrollment = findById(id);
-        if  (oldEnrollment != null) {
-            enrollments.remove(oldEnrollment);
-        }
+    public void deleteById(Integer id) {
+
+        Enrollment enrollment = findById(id)
+                .orElseThrow(() ->
+                        new NoSuchElementException(
+                                "Không tìm thấy đăng ký có id = " + id
+                        )
+                );
+
+        enrollments.remove(enrollment);
     }
 }

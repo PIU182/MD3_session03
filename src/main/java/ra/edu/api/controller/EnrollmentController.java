@@ -1,56 +1,147 @@
 package ra.edu.api.controller;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import ra.edu.api.dto.ApiResponse;
 import ra.edu.api.model.Enrollment;
 import ra.edu.api.service.EnrollmentService;
 
 import java.util.List;
+import java.util.NoSuchElementException;
 
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("api/v1/enrollments")
+@RequestMapping("/api/v1/enrollments")
 public class EnrollmentController {
+
     private final EnrollmentService enrollmentService;
 
     @GetMapping
-    public ResponseEntity<List<Enrollment>> getAll() {
-        enrollmentService.findAll();
-        return ResponseEntity.ok().body(enrollmentService.findAll());
+    public ResponseEntity<ApiResponse<List<Enrollment>>> getAll() {
+
+        List<Enrollment> enrollments =
+                enrollmentService.findAll();
+
+        return ResponseEntity.ok(
+                new ApiResponse<>(
+                        true,
+                        "Lấy danh sách đăng ký thành công",
+                        enrollments
+                )
+        );
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<Enrollment> getOne(@PathVariable Integer id) {
-        if  (enrollmentService.findById(id) == null) {
-            return ResponseEntity.notFound().build();
+    public ResponseEntity<ApiResponse<Enrollment>> getOne(
+            @PathVariable Integer id) {
+
+        try {
+
+            Enrollment enrollment =
+                    enrollmentService.findById(id);
+
+            return ResponseEntity.ok(
+                    new ApiResponse<>(
+                            true,
+                            "Lấy thông tin đăng ký thành công",
+                            enrollment
+                    )
+            );
+
+        } catch (NoSuchElementException e) {
+
+            return ResponseEntity
+                    .status(HttpStatus.NOT_FOUND)
+                    .body(
+                            new ApiResponse<>(
+                                    false,
+                                    e.getMessage(),
+                                    null
+                            )
+                    );
         }
-        return ResponseEntity.ok().body(enrollmentService.findById(id));
     }
 
     @PostMapping
-    public ResponseEntity<Enrollment> create(@RequestBody Enrollment enrollment) {
+    public ResponseEntity<ApiResponse<Enrollment>> create(
+            @RequestBody Enrollment enrollment) {
+
         enrollmentService.create(enrollment);
-        return ResponseEntity.ok().body(enrollment);
+
+        return ResponseEntity
+                .status(HttpStatus.CREATED)
+                .body(
+                        new ApiResponse<>(
+                                true,
+                                "Thêm đăng ký thành công",
+                                enrollment
+                        )
+                );
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<Enrollment> update(@PathVariable Integer id, @RequestBody Enrollment enrollment) {
-        Enrollment updateEnrollment = enrollmentService.findById(id);
-        if (updateEnrollment == null) {
-            return ResponseEntity.notFound().build();
+    public ResponseEntity<ApiResponse<Enrollment>> update(
+            @PathVariable Integer id,
+            @RequestBody Enrollment enrollment) {
+
+        try {
+
+            enrollmentService.update(id, enrollment);
+
+            Enrollment updatedEnrollment =
+                    enrollmentService.findById(id);
+
+            return ResponseEntity.ok(
+                    new ApiResponse<>(
+                            true,
+                            "Cập nhật đăng ký thành công",
+                            updatedEnrollment
+                    )
+            );
+
+        } catch (NoSuchElementException e) {
+
+            return ResponseEntity
+                    .status(HttpStatus.NOT_FOUND)
+                    .body(
+                            new ApiResponse<>(
+                                    false,
+                                    e.getMessage(),
+                                    null
+                            )
+                    );
         }
-        enrollmentService.update(id, enrollment);
-        return ResponseEntity.ok().body(updateEnrollment);
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<Enrollment> delete(@PathVariable Integer id) {
-        Enrollment deleteEnrollment = enrollmentService.findById(id);
-        if (deleteEnrollment == null) {
-            return ResponseEntity.notFound().build();
+    public ResponseEntity<ApiResponse<Void>> delete(
+            @PathVariable Integer id) {
+
+        try {
+
+            enrollmentService.delete(id);
+
+            return ResponseEntity.ok(
+                    new ApiResponse<>(
+                            true,
+                            "Xóa đăng ký thành công",
+                            null
+                    )
+            );
+
+        } catch (NoSuchElementException e) {
+
+            return ResponseEntity
+                    .status(HttpStatus.NOT_FOUND)
+                    .body(
+                            new ApiResponse<>(
+                                    false,
+                                    e.getMessage(),
+                                    null
+                            )
+                    );
         }
-        enrollmentService.delete(id);
-        return ResponseEntity.ok().body(deleteEnrollment);
     }
 }
